@@ -5,13 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
-	var migrationsPath, migrationsTable string
+	var migrationsPath string
 
 	flag.StringVar(&migrationsPath, "migrations-path", "", "path to migrations")
-	flag.StringVar(&migrationsTable, "migrations-table", "migrations", "name of migrations table")
 	flag.Parse()
 
 	if migrationsPath == "" {
@@ -20,7 +21,7 @@ func main() {
 
 	m, err := migrate.New(
 		"file://"+migrationsPath,
-		fmt.Sprintf("postgres://postgres:admin@localhost:5432/postgres?sslmode=disable?x-migrations-table=%s", migrationsTable),
+		fmt.Sprintf("postgres://postgres:admin@localhost:5432/postgres?sslmode=disable"),
 	)
 	if err != nil {
 		panic(err)
