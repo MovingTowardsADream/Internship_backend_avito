@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS operations;
+
+DROP TABLE IF EXISTS reservations;
+
+DROP TABLE IF EXISTS products;
+
+DROP TABLE IF EXISTS accounts;
+
+DROP TABLE IF EXISTS users;
