@@ -1,15 +1,18 @@
 package main
 
 import (
+	"Internship_backend_avito/configs"
 	"errors"
 	"flag"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
 	var migrationsPath string
 
 	flag.StringVar(&migrationsPath, "migrations-path", "", "path to migrations")
@@ -19,9 +22,15 @@ func main() {
 		panic("Migrations-path is required")
 	}
 
+	cfg := configs.MustLoad()
+
+	if err := godotenv.Load(); err != nil {
+		panic("Failed reading db password")
+	}
+
 	m, err := migrate.New(
 		"file://"+migrationsPath,
-		fmt.Sprintf("postgres://postgres:admin@localhost:5432/postgres?sslmode=disable"),
+		fmt.Sprintf("postgres://%s:admin@%s:%s/%s?sslmode=%s", cfg.Database.Username, cfg.Database.Host, cfg.Database.Port, cfg.Database.DBName, cfg.Database.SSLMode),
 	)
 	if err != nil {
 		panic(err)

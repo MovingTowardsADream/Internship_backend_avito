@@ -1,6 +1,13 @@
 package postgresdb
 
+import (
+	"Internship_backend_avito/internal/entity"
+	"github.com/jmoiron/sqlx"
+)
+
 type Authorization interface {
+	CreateUser(user entity.User) (int, error)
+	GetUser(username, password string) (entity.User, error)
 }
 
 type Account interface {
@@ -23,6 +30,8 @@ type Repository struct {
 	Operation
 }
 
-func NewRepository() *Repository {
-	return &Repository{}
+func NewRepository(db *sqlx.DB) *Repository {
+	return &Repository{
+		Authorization: NewAuthPostgres(db),
+	}
 }
