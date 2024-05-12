@@ -7,10 +7,11 @@ import (
 	"Internship_backend_avito/internal/service"
 	"Internship_backend_avito/pkg/httpserver"
 	"Internship_backend_avito/pkg/postgres"
+	"fmt"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-	"os"
+	"log"
 )
 
 func main() {
@@ -20,25 +21,27 @@ func main() {
 		logrus.Fatalf("Error loading env variables: %s", err.Error())
 	}
 
-	db, err := postgres.NewPostgresDB(postgres.ConfigDB{
-		Host:     cfg.Database.Host,
-		Port:     cfg.Database.Port,
-		Username: cfg.Database.Username,
-		Password: os.Getenv("POSTGRES_PASSWORD"),
-		DBName:   cfg.Database.DBName,
-		SSLMode:  cfg.Database.SSLMode,
-	})
+	logrus.Info("Initializing postgres...")
+
+	// TODO Env + Config
+	db, err := postgres.NewPostgresDB(
+		"postgres://postgres:admin@localhost:5432/postgres",
+		postgres.MaxPoolSize(20))
 
 	if err != nil {
-		logrus.Fatalf("Failed initialization database: %s", err.Error())
+		log.Fatal(fmt.Errorf("app - Run - pgdb.NewServices: %w", err))
 	}
+	defer db.Close()
+
+	// Repositories
+	logrus.Info("Initializing repositories...")
 
 	repos := postgresdb.NewRepository(db)
 	serv := service.NewService(repos)
 	handlers := v1.NewHandler(serv)
 
 	server := new(httpserver.Server)
-	if err := server.Run(cfg.App.Port, handlers.InitHandler()); err != nil {
+	if err = server.Run(cfg.App.Port, handlers.InitHandler()); err != nil {
 		logrus.Fatalf("error occured on server shutting down: %s", err.Error())
 	}
 }

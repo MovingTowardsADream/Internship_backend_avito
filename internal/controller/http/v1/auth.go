@@ -19,7 +19,7 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
-	id, err := h.service.Authorization.CreateUser(service.AuthCreateUserInput{
+	id, err := h.service.Authorization.CreateUser(c.Request.Context(), service.AuthCreateUserInput{
 		Username: input.Username,
 		Password: input.Password,
 	})
@@ -29,8 +29,12 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+	type response struct {
+		Id int `json:"id"`
+	}
+
+	c.JSON(http.StatusCreated, response{
+		Id: id,
 	})
 }
 
@@ -47,7 +51,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	token, err := h.service.Authorization.GenerateToken(service.AuthGenerateTokenInput{
+	token, err := h.service.Authorization.GenerateToken(c.Request.Context(), service.AuthGenerateTokenInput{
 		Username: input.Username,
 		Password: input.Password,
 	})
@@ -57,7 +61,11 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
+	type response struct {
+		Token string `json:"token"`
+	}
+
+	c.JSON(http.StatusOK, response{
+		Token: token,
 	})
 }

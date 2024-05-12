@@ -4,6 +4,8 @@ import (
 	"Internship_backend_avito/internal/entity"
 	"Internship_backend_avito/internal/repository/postgresdb"
 	"Internship_backend_avito/pkg/hasher"
+	"context"
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"time"
 )
@@ -26,16 +28,16 @@ func NewAuthServices(repo postgresdb.Authorization) *AuthServices {
 	return &AuthServices{repo: repo}
 }
 
-func (s *AuthServices) CreateUser(input AuthCreateUserInput) (int, error) {
+func (s *AuthServices) CreateUser(ctx context.Context, input AuthCreateUserInput) (int, error) {
 	user := entity.User{
 		Username: input.Username,
 		Password: hasher.GeneratePasswordHash(input.Password),
 	}
-	return s.repo.CreateUser(user)
+	return s.repo.CreateUser(ctx, user)
 }
 
-func (s *AuthServices) GenerateToken(input AuthGenerateTokenInput) (string, error) {
-	user, err := s.repo.GetUser(input.Username, hasher.GeneratePasswordHash(input.Password))
+func (s *AuthServices) GenerateToken(ctx context.Context, input AuthGenerateTokenInput) (string, error) {
+	user, err := s.repo.GetUser(ctx, input.Username, hasher.GeneratePasswordHash(input.Password))
 	if err != nil {
 		return "", err
 	}
@@ -47,4 +49,24 @@ func (s *AuthServices) GenerateToken(input AuthGenerateTokenInput) (string, erro
 		user.Id,
 	})
 	return token.SignedString([]byte(signingKey))
+}
+
+func (s *AuthServices) ParseToken(accessToken string) (int, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(signingKey), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return 0, errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return claims.UserId, nil
 }

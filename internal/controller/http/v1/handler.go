@@ -30,20 +30,20 @@ func (h *Handler) InitHandler() *gin.Engine {
 				accounts.POST("/deposit", h.AccountDeposit)
 				accounts.POST("/withdraw", h.AccountWithDraw)
 				accounts.POST("/transfer", h.AccountTransfer)
-				accounts.GET("/", h.AccountsGet)
+				accounts.GET("/:id", h.AccountsGet)
 			}
-			operations := v1.Group("/operations")
+			operations := v1.Group("/operations", h.userIdentity)
 			{
 				operations.GET("/history", h.OperationsHistory)
 				operations.GET("/link", h.OperationsLink)
 				operations.GET("/file", h.OperationsFile)
 			}
-			product := v1.Group("/product")
+			product := v1.Group("/product", h.userIdentity)
 			{
 				product.POST("/create", h.ProductCreate)
 				product.GET("/", h.ProductGet)
 			}
-			reservation := v1.Group("/reservation")
+			reservation := v1.Group("/reservation", h.userIdentity)
 			{
 				reservation.POST("/create", h.ReservationCreate)
 				reservation.POST("/revenue", h.ReservationRevenue)

@@ -2,15 +2,21 @@ package postgresdb
 
 import (
 	"Internship_backend_avito/internal/entity"
-	"github.com/jmoiron/sqlx"
+	"Internship_backend_avito/pkg/postgres"
+	"context"
 )
 
 type Authorization interface {
-	CreateUser(user entity.User) (int, error)
-	GetUser(username, password string) (entity.User, error)
+	CreateUser(ctx context.Context, user entity.User) (int, error)
+	GetUser(ctx context.Context, username, password string) (entity.User, error)
 }
 
 type Account interface {
+	CreateAccount(ctx context.Context) (int, error)
+	AccountDeposit(ctx context.Context, id, amount int) error
+	Withdraw(ctx context.Context, id, amount int) error
+	Transfer(ctx context.Context, id_from, id_to, amount int) error
+	GetAccountById(ctx context.Context, accountId int) (entity.Account, error)
 }
 
 type Product interface {
@@ -30,8 +36,9 @@ type Repository struct {
 	Operation
 }
 
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(db *postgres.Postgres) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
+		Account:       NewAccountPostgres(db),
 	}
 }
