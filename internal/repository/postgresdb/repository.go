@@ -20,12 +20,15 @@ type Account interface {
 }
 
 type Product interface {
+	CreateProduct(ctx context.Context, name string) (int, error)
+	GetProductById(ctx context.Context, id int) (entity.Product, error)
 }
 
 type Reservation interface {
 }
 
 type Operation interface {
+	OperationsHistory(ctx context.Context, accountId int, sortType string, offset int, limit int) ([]entity.Operation, []string, error)
 }
 
 type Repository struct {
@@ -40,5 +43,7 @@ func NewRepository(db *postgres.Postgres) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
 		Account:       NewAccountPostgres(db),
+		Product:       NewProductPostgres(db),
+		Operation:     NewOperationPostgres(db),
 	}
 }

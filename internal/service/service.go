@@ -4,6 +4,7 @@ import (
 	"Internship_backend_avito/internal/entity"
 	"Internship_backend_avito/internal/repository/postgresdb"
 	"context"
+	"time"
 )
 
 type AuthCreateUserInput struct {
@@ -47,12 +48,31 @@ type Account interface {
 }
 
 type Product interface {
+	CreateProduct(ctx context.Context, name string) (int, error)
+	GetProductById(ctx context.Context, id int) (entity.Product, error)
 }
 
 type Reservation interface {
 }
 
+type OperationHistoryInput struct {
+	AccountId int    `json:"account_id" binding:"required"`
+	SortType  string `json:"sort_type" binding:"required"`
+	Offset    int    `json:"offset" binding:"required"`
+	Limit     int    `json:"limit" binding:"required"`
+}
+
+type OperationHistoryOutput struct {
+	Amount      int       `json:"amount"`
+	Operation   string    `json:"operation"`
+	Time        time.Time `json:"time"`
+	Product     string    `json:"product,omitempty"`
+	Order       *int      `json:"order,omitempty"`
+	Description string    `json:"description,omitempty"`
+}
+
 type Operation interface {
+	OperationsHistory(ctx context.Context, input OperationHistoryInput) ([]OperationHistoryOutput, error)
 }
 
 type Service struct {
@@ -67,5 +87,7 @@ func NewService(repos *postgresdb.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthServices(repos.Authorization),
 		Account:       NewAccountService(repos.Account),
+		Product:       NewProductServices(repos.Product),
+		Operation:     NewOperationServices(repos.Operation),
 	}
 }
