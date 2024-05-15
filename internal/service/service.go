@@ -52,7 +52,15 @@ type Product interface {
 	GetProductById(ctx context.Context, id int) (entity.Product, error)
 }
 
+type CreateReservationInput struct {
+	AccountId int `json:"account_id" binding:"required"`
+	ProductId int `json:"product_id" binding:"required"`
+	OrderId   int `json:"order_id" binding:"required"`
+	Amount    int `json:"amount" binding:"required"`
+}
+
 type Reservation interface {
+	CreateReservation(ctx context.Context, input CreateReservationInput) (int, error)
 }
 
 type OperationHistoryInput struct {
@@ -73,6 +81,7 @@ type OperationHistoryOutput struct {
 
 type Operation interface {
 	OperationsHistory(ctx context.Context, input OperationHistoryInput) ([]OperationHistoryOutput, error)
+	OperationsFile(ctx context.Context, month, year int) ([]byte, error)
 }
 
 type Service struct {
@@ -89,5 +98,6 @@ func NewService(repos *postgresdb.Repository) *Service {
 		Account:       NewAccountService(repos.Account),
 		Product:       NewProductServices(repos.Product),
 		Operation:     NewOperationServices(repos.Operation),
+		Reservation:   NewReservationServices(repos.Reservation),
 	}
 }

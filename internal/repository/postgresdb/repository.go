@@ -25,10 +25,12 @@ type Product interface {
 }
 
 type Reservation interface {
+	CreateReservation(ctx context.Context, reservation entity.Reservation) (int, error)
 }
 
 type Operation interface {
 	OperationsHistory(ctx context.Context, accountId int, sortType string, offset int, limit int) ([]entity.Operation, []string, error)
+	OperationsFile(ctx context.Context, month, year int) ([]string, []int, error)
 }
 
 type Repository struct {
@@ -45,5 +47,6 @@ func NewRepository(db *postgres.Postgres) *Repository {
 		Account:       NewAccountPostgres(db),
 		Product:       NewProductPostgres(db),
 		Operation:     NewOperationPostgres(db),
+		Reservation:   NewReservationPostgres(db),
 	}
 }

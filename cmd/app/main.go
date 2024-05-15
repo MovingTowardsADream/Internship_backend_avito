@@ -33,6 +33,8 @@ func main() {
 	}
 	defer db.Close()
 
+	// TODO ping db
+
 	// Repositories
 	logrus.Info("Initializing repositories...")
 

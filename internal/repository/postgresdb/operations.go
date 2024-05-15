@@ -59,3 +59,34 @@ func (r *OperationPostgres) OperationsHistory(ctx context.Context, accountId int
 
 	return operations, productNames, nil
 }
+
+func (r *OperationPostgres) OperationsFile(ctx context.Context, month, year int) ([]string, []int, error) {
+	sql, args, _ := r.db.Builder.
+		Select("products.name", "sum(amount)").
+		From("operations").
+		InnerJoin("products on operations.product_id = products.id").
+		Where("operation_type = ? and extract(month from operations.created_at) = ? and extract(year from operations.created_at) = ?", "revenue", month, year).
+		GroupBy("products.name").
+		ToSql()
+
+	rows, err := r.db.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("OperationRepo.GetAllRevenueOperationsGroupedByProductId - r.Pool.Query: %v", err)
+	}
+	defer rows.Close()
+
+	var productNames []string
+	var amounts []int
+	for rows.Next() {
+		var productName string
+		var amount int
+		err = rows.Scan(&productName, &amount)
+		if err != nil {
+			return nil, nil, fmt.Errorf("OperationRepo.GetAllRevenueOperationsGroupedByProductId - rows.Scan: %v", err)
+		}
+		productNames = append(productNames, productName)
+		amounts = append(amounts, amount)
+	}
+
+	return productNames, amounts, nil
+}
